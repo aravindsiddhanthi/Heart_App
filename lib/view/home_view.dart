@@ -1,76 +1,56 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../viewmodel/heart_viewmodel.dart';
+import '../services/heart_service.dart';
+import '../model/heart_state.dart';
+import 'success_view.dart';
 
-class HomeView extends StatefulWidget {
+class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
-}
-
-class _HomeViewState extends State<HomeView> {
-  double _progress = 0.0; // 0 to 1 range
-  Timer? _timer;
-  bool _isFilling = false;
-
-  // Start or pause the filling inside heart
-  void _toggleFill() {
-    if (_isFilling) {
-      _timer?.cancel();
-      setState(() => _isFilling = false);
-    } else {
-      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        setState(() {
-          if (_progress < 1.0) {
-            _progress += 0.1; // fill 10 % for every each second
-          } else {
-            _timer?.cancel();
-            _isFilling = false;
-          }
-        });
-      });
-      setState(() => _isFilling = true);
-    }
-  }
-
-  void _clearHeart() {
-    _timer?.cancel();
-    setState(() {
-      _progress = 0.0;
-      _isFilling = false;
-    });
-  }
-
-  void _goToSuccessScreen() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const SuccessView()),
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => HeartViewModel(HeartService()),
+      child: const HeartScreen(),
     );
   }
+}
+
+class HeartScreen extends StatelessWidget {
+  const HeartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<HeartViewModel>();
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
+      appBar: AppBar(
+        title: Text(
+          vm.status.name.toUpperCase(), // shows Empty,Filling,Filled,Success
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.deepPurple.shade100,
+      ),
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: _toggleFill,
+              onTap: vm.toggleFill,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Heart outline (gray)
                   Icon(Icons.favorite, color: Colors.grey[300], size: 180),
-                  // Filled portion
                   ClipRect(
                     child: Align(
                       alignment: Alignment.bottomCenter,
-                      heightFactor: _progress,
+                      heightFactor: vm.progress, // 0.0 → 1.0
                       child: const Icon(
                         Icons.favorite,
-                        color: Colors.deepPurple, // as per given image color
+                        color: Colors.deepPurple,
                         size: 180,
                       ),
                     ),
@@ -80,7 +60,7 @@ class _HomeViewState extends State<HomeView> {
             ),
             const SizedBox(height: 16),
             Text(
-              "${(_progress * 100).toInt()}%",
+              "${(vm.progress * 100).toInt()}%",
               style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -88,9 +68,9 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
             const SizedBox(height: 32),
-            if (_progress == 1.0)
+            if (vm.status == HeartStatus.filled)
               ElevatedButton(
-                onPressed: _clearHeart,
+                onPressed: vm.clearHeart,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   fixedSize: const Size(200, 40),
@@ -99,43 +79,19 @@ class _HomeViewState extends State<HomeView> {
               ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: _progress == 1.0 ? _goToSuccessScreen : null,
+              onPressed: vm.status == HeartStatus.filled
+                  ? () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SuccessView()),
+                    )
+                  : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: vm.status == HeartStatus.filled
+                    ? Colors.blue
+                    : Colors.grey[300],
                 fixedSize: const Size(200, 40),
               ),
               child: const Text('Next'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Separate Success screen
-class SuccessView extends StatelessWidget {
-  const SuccessView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'SUCCESS!',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                fixedSize: const Size(200, 40),
-              ),
-              child: const Text('Back'),
             ),
           ],
         ),

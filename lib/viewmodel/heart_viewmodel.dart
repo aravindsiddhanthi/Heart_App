@@ -8,7 +8,7 @@ class HeartViewModel extends ChangeNotifier {
   Timer? _timer;
   double progress = 0.0;
   HeartStatus status = HeartStatus.empty;
-  bool _isRunning = false;
+  bool _isRunning = false; // tap starts/stops filling
 
   // here the entire application logic builds
   HeartViewModel(this._service);
@@ -34,7 +34,7 @@ class HeartViewModel extends ChangeNotifier {
         _isRunning = false;
         status = HeartStatus.filled;
       }
-      notifyListeners();
+      notifyListeners(); // to notify and update the UI
     });
     notifyListeners();
   }
