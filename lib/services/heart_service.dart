@@ -4,7 +4,10 @@ class HeartService {
   // uses as a  Dependency Injection support for viewmodel
   double increase(double currentProgress) {
     if (currentProgress < 1.0) {
-      return (currentProgress + 0.1).clamp(0.0, 1.0);
+      double next = (currentProgress + 0.1);
+      next = double.parse(next.toStringAsFixed(1));
+      return next.clamp(0.0, 1.0);
+      //return (currentProgress + 0.1).clamp(0.0, 1.0);
     }
     return 1.0;
   }

@@ -43,7 +43,11 @@ class HeartScreen extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Icon(Icons.favorite, color: Colors.grey[300], size: 180),
+                  Icon(
+                    Icons.favorite,
+                    color: Colors.grey[300],
+                    size: 180,
+                  ), // pervious size:220
                   ClipRect(
                     child: Align(
                       alignment: Alignment.bottomCenter,
@@ -51,7 +55,7 @@ class HeartScreen extends StatelessWidget {
                       child: const Icon(
                         Icons.favorite,
                         color: Colors.deepPurple,
-                        size: 180,
+                        size: 180, //pervious 200
                       ),
                     ),
                   ),
