@@ -55,7 +55,7 @@ class HeartScreen extends StatelessWidget {
                       child: const Icon(
                         Icons.favorite,
                         color: Colors.deepPurple,
-                        size: 180, //pervious 200
+                        size: 220, //pervious 200
                       ),
                     ),
                   ),

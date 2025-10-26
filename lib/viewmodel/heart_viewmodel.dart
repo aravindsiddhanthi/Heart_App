@@ -11,50 +11,47 @@ class HeartViewModel extends ChangeNotifier {
   bool _isRunning = false; // tap starts/stops filling
 
   // here the entire application logic builds
-  HeartViewModel(this._service);
+  HeartViewModel(this._service) {
+    _loadSavedState(); // here it will laod the pervious state
+  }
+
+  Future<void> _loadSavedState() async {
+    final saved = await _service.loadstate();
+    progress = saved['progress'];
+    status = saved['status'];
+    notifyListeners();
+  }
 
   // tap to start or pause the filling
   void toggleFill() {
     if (_isRunning) {
-      _pauseFilling();
+      _timer?.cancel();
+      _isRunning = false;
     } else {
-      _startFilling();
-    }
-  }
-
-  void _startFilling() {
-    _isRunning = true;
-    status = HeartStatus.filling;
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      progress = _service.increase(progress);
-
-      if (progress >= 1.0) {
-        progress = 1.0;
-        _timer?.cancel();
-        _isRunning = false;
-        status = HeartStatus.filled;
-      }
-      notifyListeners(); // to notify and update the UI
-    });
-    notifyListeners();
-  }
-
-  void _pauseFilling() {
-    _timer?.cancel();
-    _isRunning = false;
-    if (progress == 0.0) {
-      status = HeartStatus.empty;
-    } else if (progress < 1.0) {
       status = HeartStatus.filling;
+      _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+        progress = _service.increase(progress);
+        await _service.savestate(progress, status);
+        if (progress >= 1.0) {
+          progress = 1.0;
+          status = HeartStatus.filled;
+          _timer?.cancel();
+          _isRunning = false;
+          await _service.savestate(progress, status);
+        }
+        notifyListeners();
+      });
+      _isRunning = true;
     }
     notifyListeners();
   }
 
-  void clearHeart() {
+  Future<void> clearHeart() async {
     _timer?.cancel();
-    progress = 0.0;
     _isRunning = false;
+    progress = 0.0;
     status = HeartStatus.empty;
+    await _service.clearState();
     notifyListeners();
   }
 }
