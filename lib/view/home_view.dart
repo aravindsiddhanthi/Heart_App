@@ -40,19 +40,28 @@ class HeartScreen extends StatelessWidget {
           children: [
             GestureDetector(
               onTap: vm.toggleFill,
-              child: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    stops: [0, vm.progress],
-                    colors: const [Colors.deepPurple, Colors.grey],
-                  ).createShader(bounds);
-                },
-                blendMode: BlendMode.srcATop, // keeps shader inside the icon
-                child: Icon(Icons.favorite, color: Colors.grey[300], size: 220),
+              child: ClipPath(
+                clipper: HeartClipper(), // limits shader to heart shape only
+                child: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      stops: [0, vm.progress],
+                      colors: const [Colors.deepPurple, Colors.grey],
+                    ).createShader(bounds);
+                  },
+                  blendMode:
+                      BlendMode.srcATop, // apply shader inside heart only
+                  child: Container(
+                    width: 220,
+                    height: 220,
+                    color: Colors.grey[300], // base heart color (unfilled)
+                  ),
+                ),
               ),
             ),
+
             const SizedBox(height: 16),
             Text(
               "${(vm.progress * 100).toInt()}%",
@@ -93,4 +102,25 @@ class HeartScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class HeartClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    final width = size.width;
+    final height = size.height;
+
+    // Start from bottom tip of heart
+    path.moveTo(width / 2, height);
+    // Left half of heart
+    path.cubicTo(0, height * 0.75, 0, height * 0.25, width / 2, height * 0.4);
+    // Right half of heart
+    path.cubicTo(width, height * 0.25, width, height * 0.75, width / 2, height);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
