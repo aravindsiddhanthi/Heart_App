@@ -40,26 +40,17 @@ class HeartScreen extends StatelessWidget {
           children: [
             GestureDetector(
               onTap: vm.toggleFill,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(
-                    Icons.favorite,
-                    color: Colors.grey[300],
-                    size: 180,
-                  ), // pervious size:220
-                  ClipRect(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      heightFactor: vm.progress, // 0.0 → 1.0
-                      child: const Icon(
-                        Icons.favorite,
-                        color: Colors.deepPurple,
-                        size: 220, //pervious 200
-                      ),
-                    ),
-                  ),
-                ],
+              child: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    stops: [0, vm.progress],
+                    colors: const [Colors.deepPurple, Colors.grey],
+                  ).createShader(bounds);
+                },
+                blendMode: BlendMode.srcATop, // keeps shader inside the icon
+                child: Icon(Icons.favorite, color: Colors.grey[300], size: 220),
               ),
             ),
             const SizedBox(height: 16),
