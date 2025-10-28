@@ -9,6 +9,7 @@ class HeartViewModel extends ChangeNotifier {
   double progress = 0.0;
   HeartStatus status = HeartStatus.empty;
   bool _isRunning = false; // tap starts/stops filling
+  bool get isRunning => _isRunning; // add getter for test
 
   // here the entire application logic builds
   HeartViewModel(this._service) {
